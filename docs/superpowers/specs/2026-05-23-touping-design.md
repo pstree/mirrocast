@@ -271,6 +271,7 @@ trusted_devices.preferences_pb
   - `[菜单]` 进设置
   - `[BACK]` 中断当前投屏
   - 长按 `[OK]` 切换调试日志等级
+- **手机旋转同步（横竖屏自适应）**：手机发送端横竖屏切换时，TV 渲染层（`SurfaceView` 容器 + `MatrixTransform`）实时调整画面 transform 与黑边填充，避免画面被压扁/被裁。AirPlay 协议自带 orientation 字段；Miracast 用 SPS/PPS 解析得到的源分辨率推断；DLNA 由 ExoPlayer 自动处理。
 
 ## 11. 仓库结构
 
@@ -278,7 +279,7 @@ trusted_devices.preferences_pb
 touping/
 ├── app/
 │   ├── src/main/
-│   │   ├── kotlin/io/github/<user>/touping/
+│   │   ├── kotlin/io/github/tffinder/touping/
 │   │   │   ├── service/          # MirrorService, BootReceiver
 │   │   │   ├── receiver/         # AirPlayBridge, MiracastSink, DlnaRenderer
 │   │   │   ├── ui/               # Compose screens
@@ -375,7 +376,7 @@ PR 触发，`./gradlew check ktlintCheck assembleDebug`，不上传产物。
 
 ## 16. 待用户审阅项
 
-- 包名 `io.github.<user>.touping` 中 `<user>` 待定（取决于 GitHub 用户名）
+- 包名 `io.github.tffinder.touping`（GitHub 账号已确认为 `tffinder`）
 - GitHub repo 名建议 `touping`（用户可改）
 - 签名 keystore 由用户本地生成后 base64 塞 Secret，本设计稿不处理生成流程，落到实现计划阶段
 - Sony Bravia 的具体型号未提供，按 Android 7+ 通用假设；如果是 Android 11+，可启用更多 API（如 `WifiP2pWfdInfo(deviceType=PRIMARY_SINK)` 的新字段）
