@@ -2,7 +2,7 @@
 
 | 字段 | 值 |
 |---|---|
-| 对应 spec | `docs/superpowers/specs/2026-05-23-touping-design.md` §14 阶段 0 |
+| 对应 spec | `docs/superpowers/specs/2026-05-23-mirrocast-design.md` §14 阶段 0 |
 | 目标产物 | 一个能在 Sony Bravia 上启动并显示 "Hello TV" 待机页的签名 APK，GH Release 已发布 |
 | 工期估算 | 1–2 天 |
 | 风险 | 低 |
@@ -15,13 +15,13 @@
 
 ### T1. 创建远程仓库
 
-- 用 `gh repo create tffinder/touping --public --license gpl-3.0 --description "Android TV screen mirroring receiver — AirPlay / Miracast / DLNA"`
-- 加 remote：`git remote add origin https://github.com/tffinder/touping.git`
+- 用 `gh repo create tffinder/mirrocast --public --license gpl-3.0 --description "Android TV screen mirroring receiver — AirPlay / Miracast / DLNA"`
+- 加 remote：`git remote add origin https://github.com/tffinder/mirrocast.git`
 - 推现有 2 个 commit（设计稿）：`git push -u origin main`
 
-**验证**：浏览器打开 https://github.com/tffinder/touping，能看到 README（auto-generated）+ docs/。
+**验证**：浏览器打开 https://github.com/tffinder/mirrocast，能看到 README（auto-generated）+ docs/。
 **风险**：低。`gh` 已认证，scope 足够。
-**回滚**：`gh repo delete tffinder/touping --confirm`（不会动本地）。
+**回滚**：`gh repo delete tffinder/mirrocast --confirm`（不会动本地）。
 
 ### T2. 写顶层 `.gitignore` + `README.md` + `LICENSE`
 
@@ -35,7 +35,7 @@
 ### T3. 初始化 Gradle 项目
 
 执行：
-- `gradle init --type basic --dsl kotlin --project-name touping`（或手工写 wrapper）
+- `gradle init --type basic --dsl kotlin --project-name mirrocast`（或手工写 wrapper）
 - 写 `settings.gradle.kts`：包含 `:app` 模块
 - 写顶层 `build.gradle.kts`：声明 plugin 仓库（google + mavenCentral），AGP 8.5+、Kotlin 2.0+ 版本
 - 写 `gradle.properties`：开启 AndroidX、Jetifier 关闭、Kotlin code style official、JVM heap 4GB
@@ -46,7 +46,7 @@
 ### T4. 创建 `app` 模块（最小 Compose for TV）
 
 - `app/build.gradle.kts`：
-  - `applicationId = "io.github.tffinder.touping"`
+  - `applicationId = "io.github.tffinder.mirrocast"`
   - `minSdk 24` / `targetSdk 34` / `compileSdk 34`
   - `versionName` from `git describe --tags --always`
   - `versionCode` from `git rev-list --count HEAD`
@@ -56,8 +56,8 @@
   - `<uses-feature android:name="android.software.leanback" android:required="false"/>`（Sony 是真 TV，但保持安卓手机兼容用 `false` 仍可装）
   - `<application android:banner="@drawable/tv_banner" .../>`（TV launcher 必须有 banner，否则 launcher 不显示图标）
   - `MainActivity` 带 `<category android:name="android.intent.category.LEANBACK_LAUNCHER"/>` + `MAIN/LAUNCHER`（同时支持手机和 TV launcher）
-- `MainActivity.kt`：Compose 显示 `Text("Hello TV — Touping v$versionName")` 居中，深色背景
-- `res/drawable/tv_banner.png`：320×180 占位图（一个深色矩形 + 白色文字 "Touping"）
+- `MainActivity.kt`：Compose 显示 `Text("Hello TV — Mirrocast v$versionName")` 居中，深色背景
+- `res/drawable/tv_banner.png`：320×180 占位图（一个深色矩形 + 白色文字 "Mirrocast"）
 
 **验证**：`./gradlew :app:assembleDebug` 成功，APK 大小合理（< 10MB）。
 **Commit**：`feat(app): minimal Compose-for-TV hello screen with launcher banner`
@@ -66,23 +66,23 @@
 
 即使 Phase 0 还没接协议，提前把 NDK 编译链路打通，避免 Phase 1 时再加这一坨拖延：
 
-- `app/src/main/cpp/CMakeLists.txt`：空的项目，仅 declare `add_library(touping_native SHARED stub.cpp)`
-- `app/src/main/cpp/stub.cpp`：一个 `extern "C" JNICALL Java_io_github_tffinder_touping_NativeBridge_version(...) → returns "0.0.1-stub"`
-- `app/src/main/kotlin/.../NativeBridge.kt`：load `touping_native` + `external fun version(): String`
+- `app/src/main/cpp/CMakeLists.txt`：空的项目，仅 declare `add_library(mirrocast_native SHARED stub.cpp)`
+- `app/src/main/cpp/stub.cpp`：一个 `extern "C" JNICALL Java_io_github_tffinder_mirrocast_NativeBridge_version(...) → returns "0.0.1-stub"`
+- `app/src/main/kotlin/.../NativeBridge.kt`：load `mirrocast_native` + `external fun version(): String`
 - `app/build.gradle.kts`：开 `externalNativeBuild { cmake { ... } }`，`ndkVersion "26.2.11394342"`
 
-**验证**：`./gradlew :app:assembleDebug` 仍成功；APK 内 `lib/arm64-v8a/libtouping_native.so` 存在；MainActivity 显示 `NativeBridge.version()`。
+**验证**：`./gradlew :app:assembleDebug` 仍成功；APK 内 `lib/arm64-v8a/libmirrocast_native.so` 存在；MainActivity 显示 `NativeBridge.version()`。
 **Commit**：`build(ndk): bootstrap NDK r26 + JNI stub library`
 
 ### T6. 生成签名 keystore + 配 GitHub Secrets
 
-- 本地一条命令：`keytool -genkeypair -v -keystore touping-release.keystore -alias touping -keyalg RSA -keysize 4096 -validity 36500 -storepass "<pw>" -keypass "<pw>" -dname "CN=Touping, OU=Self, O=tffinder, L=., S=., C=CN"`
-- 不要 commit keystore 文件，本地保存到非 repo 路径（如 `~/.keystores/touping-release.keystore`）
-- base64 编码：`base64 -w0 touping-release.keystore > kb.txt`（Windows 用 `certutil -encode`）
+- 本地一条命令：`keytool -genkeypair -v -keystore mirrocast-release.keystore -alias mirrocast -keyalg RSA -keysize 4096 -validity 36500 -storepass "<pw>" -keypass "<pw>" -dname "CN=Mirrocast, OU=Self, O=tffinder, L=., S=., C=CN"`
+- 不要 commit keystore 文件，本地保存到非 repo 路径（如 `~/.keystores/mirrocast-release.keystore`）
+- base64 编码：`base64 -w0 mirrocast-release.keystore > kb.txt`（Windows 用 `certutil -encode`）
 - 用 `gh secret set` 四件套：
   - `gh secret set KEYSTORE_B64 < kb.txt`
   - `gh secret set KEYSTORE_PWD --body "<pw>"`
-  - `gh secret set KEY_ALIAS --body "touping"`
+  - `gh secret set KEY_ALIAS --body "mirrocast"`
   - `gh secret set KEY_PWD --body "<pw>"`
 - `app/build.gradle.kts` 加 `signingConfigs.release { ... }`，读环境变量 `KEYSTORE_PATH` / `KEYSTORE_PWD` / `KEY_ALIAS` / `KEY_PWD`
 
@@ -135,7 +135,7 @@ jobs:
 1. 本地 `git tag v0.0.1 && git push --tags`
 2. 在 Actions 标签下看 release workflow 跑完
 3. 浏览器看 `releases/tag/v0.0.1`，三个 APK + SHA256SUMS.txt + CHANGELOG 全部存在
-4. 下载 `touping-v0.0.1-arm64.apk` → adb install 到 Sony → 启动看到 "Hello TV — Touping v0.0.1"
+4. 下载 `mirrocast-v0.0.1-arm64.apk` → adb install 到 Sony → 启动看到 "Hello TV — Mirrocast v0.0.1"
 
 **Commit**：`ci: release pipeline — signed multi-ABI APKs to GH Release`
 **风险**：中。GitHub Actions YAML 容易写错；secret 名拼错会静默失败。回滚：删 tag + 删 release（保留为草稿）。
@@ -144,8 +144,8 @@ jobs:
 
 走完 T1–T8 后做一次"假装从零开始"的验证：
 
-1. **新克隆**：找另一个目录 `git clone https://github.com/tffinder/touping touping-fresh && cd touping-fresh && ./gradlew assembleDebug` 跑通
-2. **Sony 实机**：v0.0.1 APK 装上去 → 在 Sony 主屏看到 Touping banner → 点开看到 Hello TV
+1. **新克隆**：找另一个目录 `git clone https://github.com/tffinder/mirrocast mirrocast-fresh && cd mirrocast-fresh && ./gradlew assembleDebug` 跑通
+2. **Sony 实机**：v0.0.1 APK 装上去 → 在 Sony 主屏看到 Mirrocast banner → 点开看到 Hello TV
 3. **CI 闭环**：随便改个文案推 PR，CI 跑绿、artifact 能下载
 
 **Commit**：无（仅验证）。如果发现问题 → 开补丁 commit 修。
@@ -156,7 +156,7 @@ jobs:
 
 Phase 0 完成当且仅当：
 
-- [x] 远程仓库 `tffinder/touping` 存在、public、GPLv3
+- [x] 远程仓库 `tffinder/mirrocast` 存在、public、GPLv3
 - [ ] 本地 `./gradlew assembleDebug` & `assembleRelease` 都成功
 - [ ] Sony Bravia 上 v0.0.1 APK 能装能启动能显示 Hello TV
 - [ ] CI workflow PR 全绿
@@ -169,7 +169,7 @@ Phase 0 完成当且仅当：
 
 | 步骤 | 用户必须做什么 |
 |---|---|
-| T1 | 确认 `tffinder/touping` 这个 repo 名 + public 可见性（spec §16 已确认） |
+| T1 | 确认 `tffinder/mirrocast` 这个 repo 名 + public 可见性（spec §16 已确认） |
 | T6 | 在 keystore 密码上做决定（建议 ≥16 字符；丢了 = 重做） |
 | T9.2 | 用 USB / ADB over WiFi 把 APK 装到自己的 Sony 上做实机测试 |
 

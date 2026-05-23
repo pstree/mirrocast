@@ -1,4 +1,4 @@
-# Touping — Android TV 投屏接收端设计稿
+# Mirrocast — Android TV 投屏接收端设计稿
 
 | 字段 | 值 |
 |---|---|
@@ -258,7 +258,7 @@ trusted_devices.preferences_pb
 
 ## 10. 额外功能（已确认纳入）
 
-- **OTA 更新检查**：启动时 + 每周一次访问 `api.github.com/repos/<owner>/touping/releases/latest`，有新版红点提示；用户点击下载 + `PackageInstaller` 安装
+- **OTA 更新检查**：启动时 + 每周一次访问 `api.github.com/repos/tffinder/mirrocast/releases/latest`，有新版红点提示；用户点击下载 + `PackageInstaller` 安装
 - **屏保**：5 分钟无连接，待机页降亮度，设备名 / 二维码缓慢飘动，防 OLED 烧屏
 - **多语言**：中文 + 英文，TV UI + Web UI 都做
 - **崩溃日志**：本地落地 `crash-<ts>.txt`，Web UI 可下载，不上传任何远端
@@ -276,10 +276,10 @@ trusted_devices.preferences_pb
 ## 11. 仓库结构
 
 ```
-touping/
+mirrocast/
 ├── app/
 │   ├── src/main/
-│   │   ├── kotlin/io/github/tffinder/touping/
+│   │   ├── kotlin/io/github/tffinder/mirrocast/
 │   │   │   ├── service/          # MirrorService, BootReceiver
 │   │   │   ├── receiver/         # AirPlayBridge, MiracastSink, DlnaRenderer
 │   │   │   ├── ui/               # Compose screens
@@ -300,7 +300,7 @@ touping/
 │   └── ffmpeg-prebuilt/          # prebuilt .so (arm64-v8a, armeabi-v7a)
 ├── docs/
 │   └── superpowers/specs/
-│       └── 2026-05-23-touping-design.md   # 本文件
+│       └── 2026-05-23-mirrocast-design.md   # 本文件
 ├── .github/workflows/
 │   ├── ci.yml                    # PR: lint + ktlint + unit test
 │   └── release.yml               # tag: build signed APK + GH Release
@@ -325,7 +325,7 @@ touping/
 3. `setup-android` + `sdkmanager 'ndk;26.2.11394342'`
 4. 解码 keystore from `secrets.KEYSTORE_B64`
 5. `./gradlew assembleRelease`（splits ABI: arm64-v8a + armeabi-v7a + universal）
-6. 收集产物 → `touping-<tag>-arm64.apk` / `touping-<tag>-armv7.apk` / `touping-<tag>-universal.apk`
+6. 收集产物 → `mirrocast-<tag>-arm64.apk` / `mirrocast-<tag>-armv7.apk` / `mirrocast-<tag>-universal.apk`
 7. 生成 SHA256SUMS.txt
 8. `gh api ...releases/generate-notes` 生成 changelog
 9. `softprops/action-gh-release` 发布
@@ -376,7 +376,6 @@ PR 触发，`./gradlew check ktlintCheck assembleDebug`，不上传产物。
 
 ## 16. 待用户审阅项
 
-- 包名 `io.github.tffinder.touping`（GitHub 账号已确认为 `tffinder`）
-- GitHub repo 名建议 `touping`（用户可改）
+- 包名 `io.github.tffinder.mirrocast`（GitHub 账号 `tffinder`，repo 名 `mirrocast`）
 - 签名 keystore 由用户本地生成后 base64 塞 Secret，本设计稿不处理生成流程，落到实现计划阶段
 - Sony Bravia 的具体型号未提供，按 Android 7+ 通用假设；如果是 Android 11+，可启用更多 API（如 `WifiP2pWfdInfo(deviceType=PRIMARY_SINK)` 的新字段）
