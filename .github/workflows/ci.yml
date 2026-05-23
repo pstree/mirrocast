@@ -1,0 +1,75 @@
+name: CI
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build debug APKs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0  # need full history for `git describe` versionName
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: ''  # we manage installs below
+
+      - name: Install required SDK + NDK
+        run: |
+          sdkmanager --install \
+            "platforms;android-35" \
+            "platforms;android-34" \
+            "build-tools;35.0.0" \
+            "cmake;3.22.1" \
+            "ndk;26.2.11394342"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Build debug APKs
+        run: ./gradlew :app:assembleDebug --stacktrace --no-daemon
+
+      - name: List output APKs
+        run: |
+          echo "::group::APK output tree"
+          find app/build/outputs/apk -type f -name '*.apk' -ls || true
+          echo "::endgroup::"
+
+      - name: Upload debug APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apks
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+          if-no-files-found: error
