@@ -1,0 +1,50 @@
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+*.iml
+.vscode/
+.fleet/
+
+# Gradle
+.gradle/
+build/
+**/build/
+out/
+local.properties
+gradle-app.setting
+.gradletasknamecache
+
+# Android
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+captures/
+.cxx/
+
+# Kotlin
+.kotlin/
+
+# NDK / CMake
+.externalNativeBuild/
+*.o
+*.obj
+
+# Signing — NEVER commit keystore or passwords
+*.keystore
+*.jks
+keystore.properties
+release.properties
+release.keystore
+*-release.keystore
+
+# Logs
+*.log
+hs_err_pid*
+
+# Local-only
+/local/
+.env
+.env.*
