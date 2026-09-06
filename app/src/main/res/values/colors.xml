@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 首页/待机界面配色 -->
+    <color name="home_background">#FF0E1117</color>
+    <color name="accent_blue">#FF7AA2F7</color>
+    <color name="text_primary">#FFEAEAEA</color>
+    <color name="text_dim">#CCEAEAEA</color>
+    <color name="text_faint">#99EAEAEA</color>
+
+    <!-- 自适应启动图标背景 -->
+    <color name="ic_launcher_background">#FF0E1117</color>
+</resources>

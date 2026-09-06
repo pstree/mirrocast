@@ -24,6 +24,9 @@ object MediaPlayback {
     private const val TAG = "MediaPlayback"
     private val handler = Handler(Looper.getMainLooper())
 
+    /** 按下遥控器“下键”时，把进度拨到片尾前这段距离，让视频快速自然播完。 */
+    private const val FINISH_SEEK_BACK_MS = 1000L
+
     data class UiState(
         val active: Boolean = false,
         val title: String = "",
@@ -118,6 +121,24 @@ object MediaPlayback {
     /** 当前播放进度，供 DLNA GetPositionInfo 反馈。 */
     fun position(): Long = player?.currentPosition ?: 0L
     fun duration(): Long = player?.duration?.takeIf { it != androidx.media3.common.C.TIME_UNSET } ?: 0L
+
+    /**
+     * 快速收尾：把当前视频进度拨到“片尾前 1s”并继续播放，
+     * 让它自然播完后自动接续播放列表中的下一段（DLNA 连播时用于快速跳过）。
+     * @return true 表示已执行（存在可跳转的媒体时长），false 表示当前无可跳过内容
+     */
+    fun quickFinishToNext(): Boolean {
+        val durationMs = duration()
+        if (durationMs <= 0L) return false
+        handler.post {
+            player?.let { p ->
+                p.seekTo((durationMs - FINISH_SEEK_BACK_MS).coerceAtLeast(0L))
+                p.play()
+                Log.i(TAG, "quickFinishToNext: seek to end-${FINISH_SEEK_BACK_MS}ms")
+            }
+        }
+        return true
+    }
 
     /** 服务销毁时释放播放器。 */
     fun release() {

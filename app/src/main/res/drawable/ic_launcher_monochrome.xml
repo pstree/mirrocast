@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 主题图标 (Android 13+)：纯色剪影，屏幕 + 播放三角镂空 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M42,34 H66 A10,10 0 0 1 76,44 V64 A10,10 0 0 1 66,74 H42 A10,10 0 0 1 32,64 V44 A10,10 0 0 1 42,34 Z M49,46 L62,54 L49,62 Z" />
+</vector>

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Mirrocast</string>
+    <string name="app_tagline">Android TV 投屏接收端</string>
+    <string name="home_status_waiting">等待 DLNA 投屏…</string>
+    <string name="home_hint">在手机视频 / 音乐 App 中点击「投屏」，\n选择 Mirrocast 即可开始</string>
+    <string name="home_version_format">v%1$s · native=%2$s</string>
 </resources>
