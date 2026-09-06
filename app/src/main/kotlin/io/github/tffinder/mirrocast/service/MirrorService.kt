@@ -203,7 +203,7 @@ class MirrorService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.app_name))
             .setContentText("正在等待 DLNA 投屏连接")
-            .setSmallIcon(R.drawable.tv_banner)
+            .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()
