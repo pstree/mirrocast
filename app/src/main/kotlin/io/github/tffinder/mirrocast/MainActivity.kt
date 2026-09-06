@@ -7,6 +7,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -27,7 +28,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var standbyRoot: View
     private lateinit var playerView: PlayerView
 
-    /** 一旦开始过投屏，就一直停留在播放画面，避免切换视频时闪回待机首页。 */
+    /** 播放中按下“返回”后回到等待连接状态；此时置 false，再按返回即退出。 */
     private var hasPlayed = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +50,37 @@ class MainActivity : ComponentActivity() {
                 .getOrDefault("(native unavailable)")
         )
 
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() = handleBackPressed()
+        })
+
         observeUiState()
+    }
+
+    /**
+     * 返回键两级处理：
+     * 1) 播放中：停止当前投屏播放，回到“等待连接”首页（不退出）；
+     * 2) 等待连接中：退出应用并停掉接收服务，做到不后台运行。
+     */
+    private fun handleBackPressed() {
+        if (hasPlayed) {
+            Log.i(TAG, "BACK: stop playback, back to standby")
+            hasPlayed = false
+            MediaPlayback.stop()
+            showStandbyScreen()
+        } else {
+            Log.i(TAG, "BACK: exit app")
+            stopService(Intent(this, MirrorService::class.java))
+            finish()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // 界面被真正关闭时（非配置变更/进程后台），停掉接收服务，做到“不后台运行”
+        if (isFinishing) {
+            stopService(Intent(this, MirrorService::class.java))
+        }
     }
 
     /** 监听投屏状态，在“待机首页”和“播放画面”之间切换。 */
