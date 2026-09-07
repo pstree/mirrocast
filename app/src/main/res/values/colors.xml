@@ -6,7 +6,4 @@
     <color name="text_primary">#FFEAEAEA</color>
     <color name="text_dim">#CCEAEAEA</color>
     <color name="text_faint">#99EAEAEA</color>
-
-    <!-- 自适应启动图标背景 -->
-    <color name="ic_launcher_background">#FF0E1117</color>
 </resources>

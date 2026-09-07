@@ -8,12 +8,12 @@
 
     <!-- 外框 -->
     <path
-        android:fillColor="#7AA2F7"
+        android:fillColor="@color/accent_blue"
         android:pathData="M42,34 H66 A10,10 0 0 1 76,44 V64 A10,10 0 0 1 66,74 H42 A10,10 0 0 1 32,64 V44 A10,10 0 0 1 42,34 Z" />
 
     <!-- 屏幕内芯 -->
     <path
-        android:fillColor="#0E1117"
+        android:fillColor="@color/home_background"
         android:pathData="M44,40 H64 A6,6 0 0 1 70,46 V62 A6,6 0 0 1 64,68 H44 A6,6 0 0 1 38,62 V46 A6,6 0 0 1 44,40 Z" />
 
     <!-- 播放三角 -->

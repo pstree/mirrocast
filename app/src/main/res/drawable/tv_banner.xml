@@ -8,17 +8,17 @@
 
     <!-- 深色底 -->
     <path
-        android:fillColor="#a2b8e6"
+        android:fillColor="@color/home_background"
         android:pathData="M0,0 H320 V180 H0 Z" />
 
     <!-- 品牌外框 -->
     <path
-        android:fillColor="#7AA2F7"
+        android:fillColor="@color/accent_blue"
         android:pathData="M136,58 H184 A16,16 0 0 1 200,74 V106 A16,16 0 0 1 184,122 H136 A16,16 0 0 1 120,106 V74 A16,16 0 0 1 136,58 Z" />
 
     <!-- 屏幕内芯 -->
     <path
-        android:fillColor="#0E1117"
+        android:fillColor="@color/home_background"
         android:pathData="M136,64 H184 A10,10 0 0 1 194,74 V106 A10,10 0 0 1 184,116 H136 A10,10 0 0 1 126,106 V74 A10,10 0 0 1 136,64 Z" />
 
     <!-- 播放三角 -->

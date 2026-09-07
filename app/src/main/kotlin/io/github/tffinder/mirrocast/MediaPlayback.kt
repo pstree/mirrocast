@@ -163,10 +163,13 @@ object MediaPlayback {
      * @return true 表示已执行（存在可跳转的媒体时长），false 表示当前无可跳过内容
      */
     fun quickFinishToNext(): Boolean {
-        val durationMs = duration()
-        if (durationMs <= 0L) return false
+        // 同步快速判断：当前无播放时长就不消费按键
+        if (duration() <= 0L) return false
         handler.post {
             player?.let { p ->
+                // post 后再读一次最新时长，避免基于过期时长跳偏
+                val durationMs = p.duration.takeIf { it != androidx.media3.common.C.TIME_UNSET } ?: return@let
+                if (durationMs <= 0L) return@let
                 p.seekTo((durationMs - FINISH_SEEK_BACK_MS).coerceAtLeast(0L))
                 p.play()
                 Log.i(TAG, "quickFinishToNext: seek to end-${FINISH_SEEK_BACK_MS}ms")
@@ -190,7 +193,7 @@ object MediaPlayback {
         player?.let { return it }
         val selector = DefaultTrackSelector(context)
         trackSelector = selector
-        applyResolutionCap()
+        applyResolutionCap(DEFAULT_MAX_LONG_SIDE)
         return ExoPlayer.Builder(context)
             .setTrackSelector(selector)
             .build()
@@ -204,18 +207,17 @@ object MediaPlayback {
     private fun resetResolutionCap() {
         if (maxLongSide == DEFAULT_MAX_LONG_SIDE) return
         maxLongSide = DEFAULT_MAX_LONG_SIDE
-        applyResolutionCap()
+        applyResolutionCap(maxLongSide)
     }
 
-    /** 把当前 [maxLongSide] 应用到轨道选择器；调用后播放器会重新评估轨道。 */
-    private fun applyResolutionCap() {
-        trackSelector?.let { s ->
-            s.setParameters(
-                s.buildUponParameters()
-                    .setMaxVideoSize(maxLongSide, maxLongSide)
-                    .build()
-            )
-        }
+    /** 把指定长边上限应用到轨道选择器；调用后播放器会重新评估轨道。 */
+    private fun applyResolutionCap(longSide: Int) {
+        val selector = trackSelector ?: return
+        selector.setParameters(
+            selector.buildUponParameters()
+                .setMaxVideoSize(longSide, longSide)
+                .build()
+        )
     }
 
     /**
@@ -241,6 +243,6 @@ object MediaPlayback {
 
         Log.i(TAG, "Video present but none fits default 1080p cap, relax to support 2K/4K")
         maxLongSide = LONG_SIDE_UNLIMITED
-        applyResolutionCap()
+        applyResolutionCap(maxLongSide)
     }
 }

@@ -23,16 +23,23 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        /** 播放画面状态保存用的 key。 */
+        private const val KEY_ON_PLAYER_SCREEN = "on_player_screen"
     }
 
     private lateinit var standbyRoot: View
     private lateinit var playerView: PlayerView
 
-    /** 播放中按下“返回”后回到等待连接状态；此时置 false，再按返回即退出。 */
-    private var hasPlayed = false
+    /**
+     * 是否停留在“投屏播放画面”：
+     * 开始过投屏即置 true，直到用户按“返回”回到等待连接；
+     * 进程重建时经 onSaveInstanceState 恢复，避免重建后误回待机页。
+     */
+    private var onPlayerScreen = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        onPlayerScreen = savedInstanceState?.getBoolean(KEY_ON_PLAYER_SCREEN, false) ?: false
         // 启动接收服务，保证设备在后台也能被 DLNA 发现
         startService(Intent(this, MirrorService::class.java))
 
@@ -63,16 +70,21 @@ class MainActivity : ComponentActivity() {
      * 2) 等待连接中：退出应用并停掉接收服务，做到不后台运行。
      */
     private fun handleBackPressed() {
-        if (hasPlayed) {
+        if (onPlayerScreen) {
             Log.i(TAG, "BACK: stop playback, back to standby")
-            hasPlayed = false
+            onPlayerScreen = false
             MediaPlayback.stop()
             showStandbyScreen()
         } else {
+            // 退出：只 finish()，停服务统一交给 onDestroy(isFinishing)，避免重复逻辑
             Log.i(TAG, "BACK: exit app")
-            stopService(Intent(this, MirrorService::class.java))
             finish()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_ON_PLAYER_SCREEN, onPlayerScreen)
     }
 
     override fun onDestroy() {
@@ -88,8 +100,8 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 MediaPlayback.uiState.collect { state ->
-                    if (state.active) hasPlayed = true
-                    if (hasPlayed) showPlayerScreen() else showStandbyScreen()
+                    if (state.active) onPlayerScreen = true
+                    if (onPlayerScreen) showPlayerScreen() else showStandbyScreen()
                 }
             }
         }
